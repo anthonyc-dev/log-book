@@ -2,7 +2,6 @@ import { db } from "@/db";
 import { dailyLogs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 
 function calcHours(
   inn: Date | null | undefined,
@@ -26,12 +25,6 @@ function isValidId(id: unknown): boolean {
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const contentType = req.headers.get('content-type');
   if (!contentType?.includes('application/json')) {
     return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 });
@@ -49,8 +42,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Task description is required' }, { status: 400 });
   }
 
-  const sessionType = sanitizeString(body.session ?? 'morning', 20);
-  if (!isValidSession(sessionType)) {
+  const session = sanitizeString(body.session ?? 'morning', 20);
+  if (!isValidSession(session)) {
     return NextResponse.json({ error: 'Invalid session type' }, { status: 400 });
   }
 
@@ -65,14 +58,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  // Ensure user can only update their own logs
-  if (existing[0].userId !== session.user.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-  }
-
   const rec = existing[0];
 
-  const isAfternoon = sessionType === "afternoon";
+  const isAfternoon = session === "afternoon";
 
   const updatePayload: Record<string, unknown> = isAfternoon
     ? { pmTimeOut: now, pmTask: task, status: "completed" }

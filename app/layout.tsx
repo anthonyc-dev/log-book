@@ -3,7 +3,6 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner";
-import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
   title: "Industrial Log | Control Center",
@@ -33,10 +32,8 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         <div className="scanning-line" aria-hidden="true" />
         <TooltipProvider>
-          <Providers>
-            {children}
-            <Toaster position="top-right" />
-          </Providers>
+          {children}
+          <Toaster position="top-right" />
         </TooltipProvider>
       </body>
     </html>
