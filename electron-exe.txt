@@ -1,0 +1,23 @@
+{
+  "main": "dist/main.js",
+  "build": {
+    "appId": "com.myapp.desktop",
+    "productName": "MyApp",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "out/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "scripts": {
+    "build:electron": "tsc",
+    "build:web": "next build && next export",
+    "build": "npm run build:web && npm run build:electron",
+    "dist": "npm run build && electron-builder"
+  }
+}

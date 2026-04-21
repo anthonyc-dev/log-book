@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1776065570468,
+      "tag": "0000_eager_wilson_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776067845083,
+      "tag": "0001_common_marvel_apes",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776068681956,
+      "tag": "0002_known_sunspot",
+      "breakpoints": true
+    }
+  ]
+}
