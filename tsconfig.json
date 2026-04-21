@@ -39,6 +39,10 @@
     "components",
     "lib",
     "hooks",
+    "src",
+    "middleware.ts",
+    "auth.config.ts",
+    "auth.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
