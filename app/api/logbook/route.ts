@@ -2,7 +2,6 @@ import { db } from "@/db";
 import { dailyLogs } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 
 function sanitizeString(str: string, maxLength = 200): string {
   if (typeof str !== 'string') return '';
@@ -10,28 +9,11 @@ function sanitizeString(str: string, maxLength = 200): string {
 }
 
 export async function GET() {
-  const session = await auth();
-  
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const result = await db
-    .select()
-    .from(dailyLogs)
-    .where(eq(dailyLogs.userId, session.user.id))
-    .orderBy(desc(dailyLogs.createdAt));
-    
+  const result = await db.select().from(dailyLogs).orderBy(desc(dailyLogs.createdAt));
   return NextResponse.json(result);
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const contentType = req.headers.get('content-type');
   if (!contentType?.includes('application/json')) {
     return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 });
@@ -46,7 +28,7 @@ export async function POST(req: Request) {
   const result = await db
     .insert(dailyLogs)
     .values({
-      userId: session.user.id,
+      userId: "1",
       date: todayDate,
       task: task,
       status: "active",

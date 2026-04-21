@@ -1,9 +1,8 @@
 import { db } from "@/db";
 import { dailyLogs } from "@/db/schema";
-import { desc, sql, eq } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 import * as XLSX from "xlsx";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 
 // ────────────────────────────────────────────────────────────────
 // Helpers
@@ -42,6 +41,7 @@ function calcDuration(
 // ────────────────────────────────────────────────────────────────
 const BLUE = "1F6BB0"; // MORNING header colour (matches image)
 const NAVY = "17375E"; // AFTERNOON header colour (matches image)
+const LIGHT_BLUE = "DCE6F1";
 
 const borderThin = (colour = "000000") => ({
   style: "thin" as const,
@@ -93,37 +93,26 @@ function dataCell(v: string, bold = false, wrap = false): XLSX.CellObject {
 // GET /api/logbook/export
 // ────────────────────────────────────────────────────────────────
 export async function GET(request: Request) {
-  const session = await auth();
-  
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const { searchParams } = new URL(request.url);
   const startDate = searchParams.get('startDate');
   const endDate = searchParams.get('endDate');
 
+  let query = db.select().from(dailyLogs).orderBy(desc(dailyLogs.date));
+
   let data;
   if (startDate && endDate) {
-    data = await db
-      .select()
-      .from(dailyLogs)
-      .where(
-        sql`${dailyLogs.userId} = ${session.user.id} AND ${dailyLogs.date} >= ${startDate} AND ${dailyLogs.date} <= ${endDate}`
-      )
-      .orderBy(desc(dailyLogs.date));
+    data = await query.where(sql`${dailyLogs.date} >= ${startDate} AND ${dailyLogs.date} <= ${endDate}`);
   } else {
-    data = await db
-      .select()
-      .from(dailyLogs)
-      .where(eq(dailyLogs.userId, session.user.id))
-      .orderBy(desc(dailyLogs.date));
+    data = await query;
   }
 
   const wb = XLSX.utils.book_new();
   const ws: XLSX.WorkSheet = {};
 
   // ── Row 1  (GROUP HEADERS) ──────────────────────────────────
+  // Columns: A=DATE  B=AM-TI  C=AM-TO  D=AM-TASK  E=PM-TI  F=PM-TO  G=PM-TASK  H=TOTAL
+  //          0       1        2         3           4        5         6           7
+
   ws["A1"] = hdrCell("DATE", BLUE);
   ws["B1"] = hdrCell("MORNING", BLUE); // merged B1:D1
   ws["C1"] = hdrCell("", BLUE);
