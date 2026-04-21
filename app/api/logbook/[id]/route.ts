@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { dailyLogs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 function sanitizeString(str: string, maxLength = 200): string {
   if (typeof str !== 'string') return '';
@@ -22,6 +23,12 @@ function calcHours(inn: Date | null | undefined, out: Date | null | undefined): 
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { id } = await params;
   const logId = parseInt(id);
   
@@ -69,6 +76,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Record not found' }, { status: 404 });
   }
 
+  // Ensure user can only update their own logs
+  if (existing[0].userId !== session.user.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
   const rec = existing[0];
   const timeIn = updateData.timeIn !== undefined ? updateData.timeIn : rec.timeIn;
   const timeOut = updateData.timeOut !== undefined ? updateData.timeOut : rec.timeOut;
@@ -105,11 +117,32 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { id } = await params;
   const logId = parseInt(id);
   
   if (isNaN(logId)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+  }
+
+  // Check if the log belongs to the user
+  const existing = await db
+      .select()
+      .from(dailyLogs)
+      .where(eq(dailyLogs.id, logId));
+
+  if (existing.length === 0) {
+    return NextResponse.json({ error: 'Record not found' }, { status: 404 });
+  }
+
+  // Ensure user can only delete their own logs
+  if (existing[0].userId !== session.user.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
   try {
