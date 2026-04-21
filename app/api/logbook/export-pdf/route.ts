@@ -1,7 +1,8 @@
 import { db } from "@/db";
 import { dailyLogs } from "@/db/schema";
-import { desc, sql } from "drizzle-orm";
+import { desc, sql, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import fs from "fs";
 import path from "path";
 
@@ -35,19 +36,31 @@ function calcDuration(
 }
 
 export async function GET(request: Request) {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
 
-  let query = db.select().from(dailyLogs).orderBy(desc(dailyLogs.date));
-
   let data;
   if (startDate && endDate) {
-    data = await query.where(
-      sql`${dailyLogs.date} >= ${startDate} AND ${dailyLogs.date} <= ${endDate}`,
-    );
+    data = await db
+      .select()
+      .from(dailyLogs)
+      .where(
+        sql`${dailyLogs.userId} = ${session.user.id} AND ${dailyLogs.date} >= ${startDate} AND ${dailyLogs.date} <= ${endDate}`
+      )
+      .orderBy(desc(dailyLogs.date));
   } else {
-    data = await query;
+    data = await db
+      .select()
+      .from(dailyLogs)
+      .where(eq(dailyLogs.userId, session.user.id))
+      .orderBy(desc(dailyLogs.date));
   }
 
   console.log("export-pdf: records found:", data?.length);
@@ -61,7 +74,8 @@ export async function GET(request: Request) {
         minDate: sql`MIN(${dailyLogs.date})`.as("minDate"),
         maxDate: sql`MAX(${dailyLogs.date})`.as("maxDate"),
       })
-      .from(dailyLogs);
+      .from(dailyLogs)
+      .where(eq(dailyLogs.userId, session.user.id));
     dateDisplay = `${range.minDate} to ${range.maxDate}`;
   }
 
@@ -289,7 +303,7 @@ export async function GET(request: Request) {
     }
 
     const dayLabel = getDayLabel(rec.date);
-    const dateDisplay = `${rec.date}  ${dayLabel}`;
+    const dateCell = `${rec.date}  ${dayLabel}`;
 
     const isTimeInPM = isPM(rec.timeIn);
 
@@ -310,7 +324,7 @@ export async function GET(request: Request) {
 
     html += `
       <tr>
-        <td class="date-cell">${dateDisplay}</td>
+        <td class="date-cell">${dateCell}</td>
         <td>${amTimeIn}</td>
         <td>${amTimeOut}</td>
         <td><span class="task-text">${amTask}</span></td>
