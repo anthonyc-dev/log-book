@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { dailyLogs } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 function sanitizeString(str: string): string {
   if (typeof str !== 'string') return '';
@@ -13,6 +14,14 @@ function isValidSession(value: unknown): boolean {
 }
 
 export async function POST(req: Request) {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+
   const contentType = req.headers.get('content-type');
   if (!contentType?.includes('application/json')) {
     return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 });
@@ -20,8 +29,8 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   
-  const session = sanitizeString(body.session ?? 'morning');
-  if (!isValidSession(session)) {
+  const sessionType = sanitizeString(body.session ?? 'morning');
+  if (!isValidSession(sessionType)) {
     return NextResponse.json({ error: 'Invalid session type' }, { status: 400 });
   }
 
@@ -29,7 +38,7 @@ export async function POST(req: Request) {
   const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' });
   const todayDate = formatter.format(now);
 
-  if (session === "afternoon") {
+  if (sessionType === "afternoon") {
     const existingToday = await db
       .select()
       .from(dailyLogs)
@@ -37,7 +46,7 @@ export async function POST(req: Request) {
       .orderBy(desc(dailyLogs.createdAt));
 
     const morningLog = existingToday.find(
-      (r) => r.timeIn && r.date === todayDate && !r.pmTimeIn
+      (r) => r.timeIn && r.date === todayDate && !r.pmTimeIn && r.userId === userId
     );
 
     if (morningLog) {
@@ -52,7 +61,7 @@ export async function POST(req: Request) {
     const result = await db
       .insert(dailyLogs)
       .values({
-        userId: "1",
+        userId: userId,
         date: todayDate,
         pmTimeIn: now,
         pmTask: "",
@@ -65,7 +74,7 @@ export async function POST(req: Request) {
   const result = await db
     .insert(dailyLogs)
     .values({
-      userId: "1",
+      userId: userId,
       date: todayDate,
       timeIn: now,
       task: "",
@@ -77,6 +86,14 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+
   const now = new Date();
   const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' });
   const todayDate = formatter.format(now);
@@ -84,14 +101,16 @@ export async function GET() {
   const result = await db
     .select()
     .from(dailyLogs)
-    .where(eq(dailyLogs.date, todayDate))
+    .where(eq(dailyLogs.userId, userId))
     .orderBy(desc(dailyLogs.createdAt));
 
-  const activeSession = result.find(
+  const todayResult = result.filter(r => r.date === todayDate);
+
+  const activeSession = todayResult.find(
     (r) => r.status === "active" && r.timeIn && !r.timeOut
   );
   // Also include records with pm active
-  const pmActive = result.find(
+  const pmActive = todayResult.find(
     (r) => r.status === "active" && r.pmTimeIn && !r.pmTimeOut
   );
 
