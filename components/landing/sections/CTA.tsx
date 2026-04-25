@@ -16,7 +16,7 @@ export function CTA() {
             aria-hidden="true"
             className="pointer-events-none absolute left-1/2 top-0 -z-0 h-[280px] w-[520px] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
           />
-          {/* Corner brackets */}
+          {/* Corner bracket */}
           <span
             aria-hidden="true"
             className="absolute left-4 top-4 size-3 border-l-2 border-t-2 border-primary/60"
