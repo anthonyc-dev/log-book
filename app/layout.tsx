@@ -6,12 +6,12 @@ import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "Industrial Log | Control Center",
+  title: "Digital Log | Log-book",
   description: "High-precision activity logging system",
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: "/clock-v3.png",
+    shortcut: "/clock-v3.png",
+    apple: "/clock-v3.png",
   },
 };
 
@@ -26,12 +26,12 @@ export default function RootLayout({
       className={cn(
         "h-full",
         "antialiased",
-        "dark"
+        "dark",
+        "scroll-smooth"
       )}
       style={{ colorScheme: 'dark' }}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <div className="scanning-line" aria-hidden="true" />
         <TooltipProvider>
           <Providers>
             {children}
