@@ -10,7 +10,6 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +43,8 @@ import {
   Printer,
   Pencil,
   Trash2,
+  Search,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -136,6 +137,15 @@ export default function LogBook() {
     to: undefined,
   });
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+
+  // Date filter for the displayed log list (search-style)
+  const [filterRange, setFilterRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined,
+  });
 
   // Export modal state
   const [exportModalOpen, setExportModalOpen] = useState(false);
@@ -428,6 +438,18 @@ export default function LogBook() {
     .filter(log => log.timeIn || log.pmTimeIn)
     .map(log => new Date(log.date));
 
+  // Apply date-range filter to logs list (search-style filtering)
+  const filterFromStr = filterRange.from ? format(filterRange.from, 'yyyy-MM-dd') : null;
+  const filterToStr = filterRange.to ? format(filterRange.to, 'yyyy-MM-dd') : null;
+  const isFilterActive = !!(filterFromStr || filterToStr);
+  const filteredLogs = logs.filter((log) => {
+    if (filterFromStr && log.date < filterFromStr) return false;
+    if (filterToStr && log.date > filterToStr) return false;
+    return true;
+  });
+
+  const clearFilter = () => setFilterRange({ from: undefined, to: undefined });
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full">
@@ -562,16 +584,70 @@ export default function LogBook() {
 
       {/* ── RIGHT PANEL – Log list ── */}
       <Card className="flex-1 bg-zinc-900/80 border-zinc-800 overflow-hidden">
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-orange-500" />
-            <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-              Log Book
-            </span>
+        <div className="p-4 border-b border-zinc-800 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-orange-500" />
+              <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                Log Book
+              </span>
+            </div>
+            <Badge variant="outline" className="border-zinc-700 text-zinc-500">
+              {isFilterActive
+                ? `${filteredLogs.length} / ${logs.length} entries`
+                : `${logs.length} entries`}
+            </Badge>
           </div>
-          <Badge variant="outline" className="border-zinc-700 text-zinc-500">
-            {logs.length} entries
-          </Badge>
+
+          {/* Date range filter (search) */}
+          <div className="flex flex-col sm:flex-row sm:items-end gap-2">
+            <div className="flex items-center gap-2 text-zinc-500 sm:pb-2">
+              <Search className="h-3.5 w-3.5 text-orange-500" />
+              <span className="text-[10px] font-mono uppercase tracking-widest">Filter</span>
+            </div>
+            <div className="flex-1 grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Start Date</label>
+                <Input
+                  type="date"
+                  value={filterRange.from ? format(filterRange.from, 'yyyy-MM-dd') : ''}
+                  max={filterRange.to ? format(filterRange.to, 'yyyy-MM-dd') : undefined}
+                  onChange={(e) =>
+                    setFilterRange({
+                      ...filterRange,
+                      from: e.target.value ? new Date(e.target.value) : undefined,
+                    })
+                  }
+                  className="h-9 bg-zinc-800/60 border-zinc-700 text-zinc-200 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">End Date</label>
+                <Input
+                  type="date"
+                  value={filterRange.to ? format(filterRange.to, 'yyyy-MM-dd') : ''}
+                  min={filterRange.from ? format(filterRange.from, 'yyyy-MM-dd') : undefined}
+                  onChange={(e) =>
+                    setFilterRange({
+                      ...filterRange,
+                      to: e.target.value ? new Date(e.target.value) : undefined,
+                    })
+                  }
+                  className="h-9 bg-zinc-800/60 border-zinc-700 text-zinc-200 text-xs"
+                />
+              </div>
+            </div>
+            {isFilterActive && (
+              <Button
+                variant="outline"
+                onClick={clearFilter}
+                className="h-9 bg-zinc-800/60 border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-orange-500 text-xs"
+              >
+                <X className="h-3.5 w-3.5 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
         </div>
 
         <ScrollArea className="h-[calc(100vh-280px)] min-h-[400px]">
@@ -586,9 +662,20 @@ export default function LogBook() {
               <span className="text-sm">No log entries yet</span>
               <span className="text-xs text-zinc-600 mt-1">Time in to start tracking</span>
             </div>
+          ) : filteredLogs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-zinc-600">
+              <Search className="h-12 w-12 mb-3 opacity-30" />
+              <span className="text-sm">No entries match this date range</span>
+              <button
+                onClick={clearFilter}
+                className="text-xs text-orange-500 hover:text-orange-400 mt-2 underline-offset-2 hover:underline"
+              >
+                Clear filter
+              </button>
+            </div>
           ) : (
             <div className="p-4 space-y-3">
-              {logs.map((log, index) => {
+              {filteredLogs.map((log, index) => {
                 const isExpanded = expandedLog === log.id;
                 const isActive = log.status === 'active';
 
@@ -758,7 +845,7 @@ export default function LogBook() {
               <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-end">
                 {(() => {
                   let ms = 0;
-                  logs.forEach((log) => {
+                  filteredLogs.forEach((log) => {
                     if (log.timeIn && log.timeOut) {
                       ms += new Date(log.timeOut).getTime() - new Date(log.timeIn).getTime();
                     }
@@ -771,7 +858,9 @@ export default function LogBook() {
                   return (
                     <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-4 py-2 flex items-center gap-3">
                       <Clock className="h-4 w-4 text-orange-500" />
-                      <span className="text-xs font-medium text-zinc-400">Total Hours:</span>
+                      <span className="text-xs font-medium text-zinc-400">
+                        {isFilterActive ? 'Filtered Total:' : 'Total Hours:'}
+                      </span>
                       <span className="text-sm font-bold text-orange-500">{h}h {m}m</span>
                     </div>
                   );

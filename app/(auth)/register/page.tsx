@@ -1,14 +1,25 @@
 'use client';
 
 import { useState } from 'react';
+import styles from '../login/login.module.css';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { Eye, EyeOff, Loader2, Lock, Mail, User, UserPlus, CheckCircle2 } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  Mail,
+  User,
+  UserPlus,
+  CheckCircle2,
+} from 'lucide-react';
+import Image from 'next/image';
 
 export default function RegisterPage() {
   const router = useRouter();
-  
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -76,37 +87,54 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-8">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-yellow-600/5 rounded-full blur-3xl" />
-        </div>
-        
-        {/* Grid Pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.03]"
+    <div className="flex min-h-screen flex-col lg:flex-row relative overflow-hidden">
+
+      {/* Right Column - Decorative Panel (hidden on mobile, visible on md:) */}
+      <div className="hidden md:flex w-full lg:w-1/2 relative order-1 lg:order-2">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                             linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-            backgroundSize: '50px 50px'
+            backgroundImage:
+              'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")',
           }}
         />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent" />
+
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 via-transparent to-orange-500/20" />
+
+        {/* Content Overlay */}
+        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12 text-center">
+          <div className="max-w-md">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 tracking-tight">
+              Begin Your Logbook Journey
+            </h2>
+            <p className="text-zinc-300 text-base md:text-lg leading-relaxed">
+              Join today and start documenting every session, reflection, and
+              milestone — all in one secure, searchable place.
+            </p>
+          </div>
+
+          {/* Floating Elements */}
+          <div className="absolute top-1/4 left-1/4 w-20 h-20 bg-yellow-500/10 rounded-2xl backdrop-blur-sm animate-pulse" />
+          <div className="absolute bottom-1/3 right-1/4 w-16 h-16 bg-orange-500/10 rounded-full backdrop-blur-sm animate-pulse delay-700" />
+        </div>
       </div>
 
-      {/* Card */}
-      <div className="relative w-full max-w-md mx-4 p-8">
-        <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/20 to-orange-500/20 rounded-2xl blur-xl opacity-50" />
-        
-        <div className="relative bg-zinc-900/80 backdrop-blur-xl border border-zinc-800/50 rounded-2xl p-8 shadow-2xl">
+      {/* Left Column - Register Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center pt-6 sm:p-8 relative order-2 lg:order-1">
+
+        {/* Card */}
+        <div className="relative w-full max-w-md mx-4 pt-6 sm:p-8 z-10">
+
           {/* Logo / Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl mb-4 shadow-lg shadow-yellow-500/20">
-              <UserPlus className="w-8 h-8 text-zinc-900" />
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 ">
+              <Image src={"/clock-v3.png"} height={200} width={200} alt='logo'/>
             </div>
-            <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
               Create Account
             </h1>
             <p className="text-zinc-500 mt-2 text-sm">
@@ -116,7 +144,9 @@ export default function RegisterPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center animate-shake">
+            <div
+              className={`mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center ${styles.shake}`}
+            >
               {error}
             </div>
           )}
@@ -189,18 +219,20 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
-              
+
               {/* Password Requirements */}
               {password && (
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   {passwordRequirements.map((req, index) => (
-                    <div 
+                    <div
                       key={index}
                       className={`flex items-center gap-1.5 text-xs ${
                         req.met ? 'text-green-400' : 'text-zinc-500'
                       }`}
                     >
-                      <CheckCircle2 className={`w-3.5 h-3.5 ${req.met ? 'opacity-100' : 'opacity-30'}`} />
+                      <CheckCircle2
+                        className={`w-3.5 h-3.5 ${req.met ? 'opacity-100' : 'opacity-30'}`}
+                      />
                       {req.text}
                     </div>
                   ))}
@@ -245,9 +277,7 @@ export default function RegisterPage() {
                   Creating account...
                 </>
               ) : (
-                <>
-                  Create Account
-                </>
+                'Create Account'
               )}
             </button>
           </form>
@@ -262,19 +292,10 @@ export default function RegisterPage() {
               Sign in
             </Link>
           </p>
+
         </div>
       </div>
 
-      <style jsx global>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
-        }
-        .animate-shake {
-          animation: shake 0.3s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 }

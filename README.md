@@ -1,6 +1,8 @@
 # Digital Logbook Application
 
-![Dashboard](public/screenshot/s1.png)
+![Home](public/screenshot/s2.png)
+
+<!-- ![Dashboard](public/screenshot/s1.png) -->
 
 ## Overview
 

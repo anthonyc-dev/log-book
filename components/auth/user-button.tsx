@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
-import { LogOut, User, ChevronDown, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { LogOut, ChevronDown, Loader2, Activity } from 'lucide-react';
 
 interface UserButtonProps {
   user: {
@@ -13,12 +14,18 @@ interface UserButtonProps {
 }
 
 export default function UserButton({ user }: UserButtonProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignOut = async () => {
     setIsLoading(true);
     await signOut({ callbackUrl: '/login' });
+  };
+
+  const handleActivity = () => {
+    setIsOpen(false);
+    router.push('/dashboard/activity');
   };
 
   const initials = user.name
@@ -83,6 +90,17 @@ export default function UserButton({ user }: UserButtonProps) {
                 </div>
               </div>
             </div>
+
+            {/* Activity Button */}
+            <button
+              onClick={handleActivity}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-zinc-200 hover:bg-orange-500/10 hover:text-orange-400 transition-colors"
+            >
+              <Activity className="w-4 h-4" />
+              Activity
+            </button>
+
+            <div className="my-1 h-px bg-zinc-700/50" />
 
             {/* Sign Out Button */}
             <button

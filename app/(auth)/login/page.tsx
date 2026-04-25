@@ -6,10 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Lock, Mail, LogIn } from 'lucide-react';
+import Image from 'next/image';
 
 function LoginLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center">
       <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
     </div>
   );
@@ -58,10 +59,10 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden">
+    <div className="flex min-h-screen flex-col lg:flex-row relative overflow-hidden">
 
-      {/* Left Column - Login Form */}
-      <div className="hidden lg:flex w-full lg:w-1/2 relative order-1 lg:order-2">
+      {/* Left Column - Decorative Panel (hidden on mobile, visible on md:) */}
+      <div className="hidden md:flex w-full lg:w-1/2 relative order-1 lg:order-2">
         {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -78,10 +79,10 @@ function LoginForm() {
         {/* Content Overlay */}
         <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12 text-center">
           <div className="max-w-md">
-            <h2 className="text-4xl font-bold text-white mb-6 tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 tracking-tight">
               Track Your Learning Journey
             </h2>
-            <p className="text-zinc-300 text-lg leading-relaxed">
+            <p className="text-zinc-300 text-base md:text-lg leading-relaxed">
               Document your progress, reflect on your experiences, and watch yourself grow with every entry.
             </p>
           </div>
@@ -92,19 +93,16 @@ function LoginForm() {
         </div>
       </div>
 
-      {/* Right Column - Image */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative order-2 lg:order-1">
-
-
+      {/* Right Column - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center pt-6 sm:p-8 relative order-2 lg:order-1">
         {/* Card */}
-        <div className="relative w-full max-w-md mx-4 p-8 z-10">
-
+        <div className="relative w-full max-w-md mx-4 pt-6 sm:p-8 z-10">
           {/* Logo / Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl mb-4 shadow-lg shadow-yellow-500/20">
-              <LogIn className="w-8 h-8 text-zinc-900" />
-            </div>
-            <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">
+              <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 ">
+                  <Image src={"/clock-v3.png"} height={200} width={200} alt='logo'/>
+              </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
               Welcome Back
             </h1>
             <p className="text-zinc-500 mt-2 text-sm">
@@ -142,7 +140,7 @@ function LoginForm() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-zinc-300  ">
+              <label htmlFor="password" className="text-sm font-medium text-zinc-300">
                 Password
               </label>
               <div className="relative">
@@ -238,10 +236,8 @@ function LoginForm() {
               Create one
             </Link>
           </p>
-
         </div>
       </div>
-
 
     </div>
   );
