@@ -12,7 +12,6 @@ import {
   Lock,
   Mail,
   User,
-  UserPlus,
   CheckCircle2,
 } from 'lucide-react';
 import Image from 'next/image';

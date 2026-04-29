@@ -87,7 +87,7 @@ export async function GET(request: Request) {
       const logoBuffer = fs.readFileSync(logoPath);
       logoBase64 = logoBuffer.toString("base64");
     }
-  } catch (e) {
+  } catch {
     console.log("Logo not found");
   }
 

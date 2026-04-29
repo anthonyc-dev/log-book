@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { dailyLogs } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 function sanitizeString(str: string, maxLength = 200): string {

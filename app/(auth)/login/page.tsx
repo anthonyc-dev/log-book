@@ -5,7 +5,7 @@ import styles from './login.module.css';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { Eye, EyeOff, Loader2, Lock, Mail, LogIn } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import Image from 'next/image';
 
 function LoginLoading() {

@@ -29,7 +29,6 @@ import {
   Play,
   Square,
   Download,
-  Calendar as CalendarIcon,
   CalendarDays,
   Activity,
   FileText,
@@ -136,7 +135,6 @@ export default function LogBook() {
     from: undefined,
     to: undefined,
   });
-  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
 
   // Date filter for the displayed log list (search-style)
   const [filterRange, setFilterRange] = useState<{
@@ -211,8 +209,8 @@ export default function LogBook() {
       const timeIn = session === 'afternoon' ? res.data.pmTimeIn! : res.data.timeIn!;
       setActiveSession({ id: res.data.id, timeIn, isAfternoon: isPM });
       fetchLogs();
-    } catch (err: any) {
-      console.error('Time in failed:', err?.response?.data?.error ?? err);
+    } catch (err) {
+      console.error('Time in failed:', (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? err);
     } finally {
       setActionLoading(false);
     }
@@ -235,8 +233,8 @@ export default function LogBook() {
       setTask('');
       fetchLogs();
       toast.success('Time out recorded successfully!');
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || 'Failed to record time out';
+    } catch (err) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to record time out';
       toast.error(msg);
     } finally {
       setActionLoading(false);
@@ -426,15 +424,12 @@ export default function LogBook() {
   const canStartAfternoon = (log: LogEntry) =>
     log.timeIn && log.timeOut && !log.pmTimeIn;
 
-  const canStartAfternoonOnly = (log: LogEntry) =>
-    !log.timeIn && !log.timeOut && !log.pmTimeIn;
-
   const todayStr = new Date().toLocaleString('en-CA', { timeZone: PH_TIMEZONE });
   const todayDate = todayStr.split('T')[0];
-  const todayLog = logs.find((l) => l.date === todayDate);
+  const _todayLog = logs.find((l) => l.date === todayDate);
 
   // Get dates that have logs for calendar indicators
-  const datesWithLogs = logs
+  const _datesWithLogs = logs
     .filter(log => log.timeIn || log.pmTimeIn)
     .map(log => new Date(log.date));
 

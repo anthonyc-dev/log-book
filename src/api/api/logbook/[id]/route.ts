@@ -3,6 +3,17 @@ import { dailyLogs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
+type UpdateData = {
+  date?: string;
+  timeIn?: Date | null;
+  timeOut?: Date | null;
+  task?: string;
+  pmTimeIn?: Date | null;
+  pmTimeOut?: Date | null;
+  pmTask?: string;
+  totalHours?: string | null;
+};
+
 function sanitizeString(str: string, maxLength = 200): string {
   if (typeof str !== 'string') return '';
   return str.replace(/[<>'"]/g, '').trim().substring(0, maxLength);
@@ -36,7 +47,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const body = await req.json().catch(() => ({}));
   
-  const updateData: any = {};
+  const updateData: UpdateData = {};
   
   if (body.date !== undefined) {
     updateData.date = body.date;

@@ -39,7 +39,7 @@ export async function GET(request: Request) {
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
 
-  let query = db.select().from(dailyLogs).orderBy(desc(dailyLogs.date));
+  const query = db.select().from(dailyLogs).orderBy(desc(dailyLogs.date));
 
   let data;
   if (startDate && endDate) {
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
       const logoBuffer = fs.readFileSync(logoPath);
       logoBase64 = logoBuffer.toString("base64");
     }
-  } catch (e) {
+  } catch {
     console.log("Logo not found");
   }
 
