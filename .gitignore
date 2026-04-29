@@ -26,6 +26,8 @@ release/
 .blackbox
 /.opencode/
 .opencode
+CLAUDE.md
+AGENTS.md
 
 # production
 /build
