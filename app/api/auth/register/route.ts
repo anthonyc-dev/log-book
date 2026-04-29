@@ -42,8 +42,6 @@ export async function POST(request: NextRequest) {
       name,
       email,
       passwordHash,
-      createdAt: now,
-      updatedAt: now,
     });
 
     return NextResponse.json(
