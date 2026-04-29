@@ -41,7 +41,6 @@ function calcDuration(
 // ────────────────────────────────────────────────────────────────
 const BLUE = "1F6BB0"; // MORNING header colour (matches image)
 const NAVY = "17375E"; // AFTERNOON header colour (matches image)
-const LIGHT_BLUE = "DCE6F1";
 
 const borderThin = (colour = "000000") => ({
   style: "thin" as const,
@@ -97,13 +96,13 @@ export async function GET(request: Request) {
   const startDate = searchParams.get('startDate');
   const endDate = searchParams.get('endDate');
 
-  let query = db.select().from(dailyLogs).orderBy(desc(dailyLogs.date));
+  const baseQuery = db.select().from(dailyLogs).orderBy(desc(dailyLogs.date));
 
   let data;
   if (startDate && endDate) {
-    data = await query.where(sql`${dailyLogs.date} >= ${startDate} AND ${dailyLogs.date} <= ${endDate}`);
+    data = await baseQuery.where(sql`${dailyLogs.date} >= ${startDate} AND ${dailyLogs.date} <= ${endDate}`);
   } else {
-    data = await query;
+    data = await baseQuery;
   }
 
   const wb = XLSX.utils.book_new();

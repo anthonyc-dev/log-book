@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Activity, Menu, X } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
