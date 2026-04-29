@@ -22,6 +22,13 @@
       "when": 1776068681956,
       "tag": "0002_known_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777455663974,
+      "tag": "0003_robust_mole_man",
+      "breakpoints": true
     }
   ]
 }

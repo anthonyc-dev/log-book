@@ -28,7 +28,7 @@ export function Footer() {
               className="inline-flex items-center gap-2.5"
               aria-label="Industrial Log home"
             >
-             <Image src={"/clock--v3.png"} height={50} width={50} alt='logo'/>
+             <Image src={"/clock-v3.png"} height={40} width={40} alt='logo'/>
              <span className="flex flex-col leading-none">
               <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                 Digital log
@@ -90,10 +90,10 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border/60 pt-6 sm:flex-row sm:items-center">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            © {year} Industrial Log · All systems logged
+            © {year} Digital log | Log-book · All systems logged
           </p>
           <p className="text-xs text-muted-foreground">
-            Built with Next.js, Drizzle ORM &amp; Electron
+            Built by MicroFlux Team
           </p>
         </div>
       </div>
