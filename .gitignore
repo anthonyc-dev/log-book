@@ -21,6 +21,12 @@ release/
 /.next/
 /out/
 
+# agent folders
+/.blackbox/
+.blackbox
+/.opencode/
+.opencode
+
 # production
 /build
 
