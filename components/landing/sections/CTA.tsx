@@ -36,8 +36,7 @@ export function CTA() {
 
           <div className="relative z-10 mx-auto max-w-2xl text-center">
             <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
-              <span aria-hidden="true">// </span>
-              Ready when you are
+              {`// `}Ready when you are
             </p>
             <h2
               id="cta-heading"

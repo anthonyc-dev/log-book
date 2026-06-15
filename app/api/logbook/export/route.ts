@@ -8,7 +8,7 @@ import { auth } from "@/auth";
 // ────────────────────────────────────────────────────────────────
 // Helpers
 // ────────────────────────────────────────────────────────────────
-function fmt(ts: Date | null | undefined, placeholder = ""): string {
+function fmt(ts: Date | number | null | undefined, placeholder = ""): string {
   if (!ts) return placeholder;
   return new Date(ts).toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -17,7 +17,7 @@ function fmt(ts: Date | null | undefined, placeholder = ""): string {
   });
 }
 
-function isPM(ts: Date | null | undefined): boolean {
+function isPM(ts: Date | number | null | undefined): boolean {
   if (!ts) return false;
   const hour = new Date(ts).getHours();
   return hour >= 12;
@@ -30,8 +30,8 @@ function getDayLabel(dateStr: string): string {
 }
 
 function calcDuration(
-  inn: Date | null | undefined,
-  out: Date | null | undefined,
+  inn: Date | number | null | undefined,
+  out: Date | number | null | undefined,
 ): number {
   if (!inn || !out) return 0;
   return Math.max(0, new Date(out).getTime() - new Date(inn).getTime());

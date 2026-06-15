@@ -35,15 +35,12 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const userId = `user_${nanoid(16)}`;
-    const now = new Date();
 
     await db.insert(users).values({
       id: userId,
       name,
       email,
       passwordHash,
-      createdAt: now,
-      updatedAt: now,
     });
 
     return NextResponse.json(

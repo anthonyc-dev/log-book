@@ -24,8 +24,7 @@ export function SectionHeader({
       )}
     >
       <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-primary">
-        <span aria-hidden="true">// </span>
-        {eyebrow}
+        {`// `}{eyebrow}
       </p>
       <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
         {title}
