@@ -9,6 +9,7 @@ import path from "path";
 function fmt(ts: Date | number | null | undefined, placeholder = ""): string {
   if (!ts) return placeholder;
   return new Date(ts).toLocaleTimeString("en-US", {
+    timeZone: "Asia/Manila",
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
@@ -17,8 +18,10 @@ function fmt(ts: Date | number | null | undefined, placeholder = ""): string {
 
 function isPM(ts: Date | number | null | undefined): boolean {
   if (!ts) return false;
-  const hour = new Date(ts).getHours();
-  return hour >= 12;
+  const timeString = new Date(ts).toLocaleTimeString("en-US", {
+    timeZone: "Asia/Manila",
+  });
+  return timeString.includes("PM");
 }
 
 function getDayLabel(dateStr: string): string {
