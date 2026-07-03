@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,10 +32,8 @@ import {
   Activity,
   FileText,
   Sun,
-  Sunset,
   Timer,
   ChevronDown,
-  ChevronUp,
   FileSpreadsheet,
   FileText as FileTextIcon,
   Printer,
@@ -55,9 +52,6 @@ interface LogEntry {
   timeIn: string | null;
   timeOut: string | null;
   task: string | null;
-  pmTimeIn: string | null;
-  pmTimeOut: string | null;
-  pmTask: string | null;
   totalHours: string | null;
   status: string;
   createdAt: string;
@@ -66,7 +60,6 @@ interface LogEntry {
 type ActiveSession = {
   id: number;
   timeIn: string;
-  isAfternoon: boolean;
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -117,7 +110,7 @@ function getDayLabel(dateStr: string) {
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
-export default function LogBook() {
+export default function OtLogBook() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -158,9 +151,6 @@ export default function LogBook() {
     timeIn: '',
     timeOut: '',
     task: '',
-    pmTimeIn: '',
-    pmTimeOut: '',
-    pmTask: '',
   });
 
   // Live clock
@@ -172,17 +162,15 @@ export default function LogBook() {
   const fetchLogs = useCallback(async () => {
     try {
       const [logsRes, activeRes] = await Promise.all([
-        axios.get<LogEntry[]>('/api/logbook'),
-        axios.get<LogEntry | null>('/api/logbook/time-in'),
+        axios.get<LogEntry[]>('/api/ot-logbook'),
+        axios.get<LogEntry | null>('/api/ot-logbook/time-in'),
       ]);
 
       setLogs(logsRes.data || []);
 
       const rec = activeRes.data;
       if (rec) {
-        const isAfternoon = !!rec.pmTimeIn && !rec.pmTimeOut;
-        const timeIn = isAfternoon ? rec.pmTimeIn! : rec.timeIn!;
-        setActiveSession({ id: rec.id, timeIn, isAfternoon });
+        setActiveSession({ id: rec.id, timeIn: rec.timeIn! });
       } else {
         setActiveSession(null);
       }
@@ -201,13 +189,8 @@ export default function LogBook() {
   const handleTimeIn = async () => {
     setActionLoading(true);
     try {
-      const now = new Date();
-      const isPM = now.getHours() >= 12;
-      const session: 'morning' | 'afternoon' = isPM ? 'afternoon' : 'morning';
-
-      const res = await axios.post<LogEntry>('/api/logbook/time-in', { session });
-      const timeIn = session === 'afternoon' ? res.data.pmTimeIn! : res.data.timeIn!;
-      setActiveSession({ id: res.data.id, timeIn, isAfternoon: isPM });
+      const res = await axios.post<LogEntry>('/api/ot-logbook/time-in', {});
+      setActiveSession({ id: res.data.id, timeIn: res.data.timeIn! });
       fetchLogs();
     } catch (err) {
       console.error('Time in failed:', (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? err);
@@ -224,10 +207,9 @@ export default function LogBook() {
     }
     setActionLoading(true);
     try {
-      await axios.post('/api/logbook/time-out', {
+      await axios.post('/api/ot-logbook/time-out', {
         id: activeSession.id,
         task,
-        session: activeSession.isAfternoon ? 'afternoon' : 'morning',
       });
       setActiveSession(null);
       setTask('');
@@ -248,7 +230,7 @@ export default function LogBook() {
       if (dateRange.from) params.append('startDate', format(dateRange.from, 'yyyy-MM-dd'));
       if (dateRange.to) params.append('endDate', format(dateRange.to, 'yyyy-MM-dd'));
 
-      const res = await axios.get(`/api/logbook/export?${params.toString()}`, { responseType: 'blob' });
+      const res = await axios.get(`/api/ot-logbook/export?${params.toString()}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a');
       a.href = url;
@@ -273,7 +255,7 @@ export default function LogBook() {
       if (dateRange.to) params.append('endDate', format(dateRange.to, 'yyyy-MM-dd'));
       if (exportType === 'ot-pdf') params.append('type', 'ot');
 
-      const res = await axios.get(`/api/logbook/export-pdf?${params.toString()}`, { responseType: 'text' });
+      const res = await axios.get(`/api/ot-logbook/export-pdf?${params.toString()}`, { responseType: 'text' });
       const htmlContent = res.data;
 
       if (!htmlContent || htmlContent.trim() === '') {
@@ -310,7 +292,7 @@ export default function LogBook() {
       if (dateRange.to) params.append('endDate', format(dateRange.to, 'yyyy-MM-dd'));
       if (exportType === 'ot-pdf') params.append('type', 'ot');
 
-      const res = await axios.get(`/api/logbook/export-pdf?${params.toString()}`, { responseType: 'text' });
+      const res = await axios.get(`/api/ot-logbook/export-pdf?${params.toString()}`, { responseType: 'text' });
       const htmlContent = res.data;
 
       if (!htmlContent || htmlContent.trim() === '') {
@@ -325,7 +307,7 @@ export default function LogBook() {
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
         margin:       0.5,
-        filename:     'logbook.pdf',
+        filename:     exportType === 'ot-pdf' ? 'ot-logbook.pdf' : 'logbook.pdf',
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2 },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' as const }
@@ -370,9 +352,6 @@ export default function LogBook() {
       timeIn: toLocalDateTimeString(log.timeIn),
       timeOut: toLocalDateTimeString(log.timeOut),
       task: log.task || '',
-      pmTimeIn: toLocalDateTimeString(log.pmTimeIn),
-      pmTimeOut: toLocalDateTimeString(log.pmTimeOut),
-      pmTask: log.pmTask || '',
     });
     setEditModalOpen(true);
   };
@@ -381,14 +360,11 @@ export default function LogBook() {
     if (!editingLog) return;
     setActionLoading(true);
     try {
-      await axios.patch(`/api/logbook/${editingLog.id}`, {
+      await axios.patch(`/api/ot-logbook/${editingLog.id}`, {
         date: editForm.date,
         timeIn: editForm.timeIn || null,
         timeOut: editForm.timeOut || null,
         task: editForm.task || null,
-        pmTimeIn: editForm.pmTimeIn || null,
-        pmTimeOut: editForm.pmTimeOut || null,
-        pmTask: editForm.pmTask || null,
       });
       toast.success('Record updated successfully!');
       setEditModalOpen(false);
@@ -406,7 +382,7 @@ export default function LogBook() {
     if (!confirm('Are you sure you want to delete this record?')) return;
     setActionLoading(true);
     try {
-      await axios.delete(`/api/logbook/${editingLog.id}`);
+      await axios.delete(`/api/ot-logbook/${editingLog.id}`);
       toast.success('Record deleted successfully!');
       setEditModalOpen(false);
       fetchLogs();
@@ -419,8 +395,7 @@ export default function LogBook() {
   };
 
   // ── Derived ────────────────────────────────────────────────────────────────
-  const canStartAfternoon = (log: LogEntry) =>
-    log.timeIn && log.timeOut && !log.pmTimeIn;
+  // ── Derived ────────────────────────────────────────────────────────────────
 
   const todayStr = new Date().toLocaleString('en-CA', { timeZone: PH_TIMEZONE });
   const todayDate = todayStr.split('T')[0];
@@ -428,7 +403,7 @@ export default function LogBook() {
 
   // Get dates that have logs for calendar indicators
   const _datesWithLogs = logs
-    .filter(log => log.timeIn || log.pmTimeIn)
+    .filter(log => log.timeIn)
     .map(log => new Date(log.date));
 
   // Apply date-range filter to logs list (search-style filtering)
@@ -463,21 +438,16 @@ export default function LogBook() {
             <div className={cn(
               'relative w-28 h-28 rounded-full flex flex-col items-center justify-center transition-all duration-500',
               activeSession
-                ? !activeSession.isAfternoon
-                  ? 'bg-amber-500/20 border-2 border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.3)]'
-                  : 'bg-indigo-500/20 border-2 border-indigo-500 shadow-[0_0_30px_rgba(99,102,241,0.3)]'
+                ? 'bg-amber-500/20 border-2 border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.3)]'
                 : 'bg-zinc-800/50 border-2 border-zinc-700'
             )}>
               {actionLoading ? (
                 <div className="animate-spin rounded-full h-10 w-10 border-2 border-orange-500 border-t-transparent" />
               ) : activeSession ? (
                 <>
-                  {!activeSession.isAfternoon
-                    ? <Sun className="h-8 w-8 text-amber-500" />
-                    : <Sunset className="h-8 w-8 text-indigo-400" />
-                  }
+                  <Clock className="h-8 w-8 text-amber-500" />
                   <span className="text-[9px] font-mono text-zinc-400 uppercase mt-1">
-                    {!activeSession.isAfternoon ? 'Morning' : 'Afternoon'}
+                    OVERTIME
                   </span>
                 </>
               ) : (
@@ -488,13 +458,9 @@ export default function LogBook() {
             <div className="text-center">
               <p className={cn(
                 'text-sm font-bold tracking-wide',
-                activeSession
-                  ? !activeSession.isAfternoon ? 'text-amber-500' : 'text-indigo-400'
-                  : 'text-zinc-400'
+                activeSession ? 'text-amber-500' : 'text-zinc-400'
               )}>
-                {activeSession
-                  ? `${!activeSession.isAfternoon ? 'MORNING' : 'AFTERNOON'} ACTIVE`
-                  : 'NOT LOGGED IN'}
+                {activeSession ? 'OVERTIME ACTIVE' : 'NOT LOGGED IN'}
               </p>
               {activeSession && (
                 <p className="text-xs font-mono text-zinc-500 mt-1">
@@ -534,7 +500,7 @@ export default function LogBook() {
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-orange-500" />
               <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                {activeSession.isAfternoon ? 'Afternoon' : 'Morning'} Task
+                Overtime Task
               </span>
             </div>
             <Textarea
@@ -571,13 +537,7 @@ export default function LogBook() {
               <FileTextIcon className="h-4 w-4 mr-2" />
               PDF (HTML)
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => openExportModal('ot-pdf')}
-              className="text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 cursor-pointer"
-            >
-              <FileTextIcon className="h-4 w-4 mr-2" />
-              Overtime PDF
-            </DropdownMenuItem>
+
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -714,129 +674,82 @@ export default function LogBook() {
                           </span>
                         )}
                         <div className="flex items-center gap-1">
-                          {log.timeIn && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">
-                              AM
-                            </span>
-                          )}
-                          {log.pmTimeIn && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                              PM
-                            </span>
-                          )}
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                            OT
+                          </span>
                         </div>
-                        <Badge className={cn(
-                          'text-[10px] px-2 py-0.5 font-medium',
-                          isActive
-                            ? 'bg-orange-500/20 text-orange-500 border-orange-500/30'
-                            : 'bg-zinc-700/50 text-zinc-400 border-zinc-600'
-                        )}>
-                          {isActive ? 'ACTIVE' : 'DONE'}
-                        </Badge>
-                        <div className="flex items-center gap-1">
-                          {isExpanded
-                            ? <ChevronUp className="h-3.5 w-3.5 text-zinc-500" />
-                            : <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
-                          }
+                        <div className="flex gap-1 ml-2">
                           <button
-                            onClick={(e) => { e.stopPropagation(); openEditModal(log); }}
-                            className="p-1 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditModal(log);
+                            }}
+                            className="p-1.5 rounded-md hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                         </div>
+                        <div
+                          className={cn(
+                            'transform transition-transform duration-200 ml-1',
+                            isExpanded ? 'rotate-180 text-orange-500' : 'text-zinc-500'
+                          )}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </div>
                       </div>
                     </div>
 
-                    {/* Expanded detail – mirrors the Excel layout */}
-                    {isExpanded && (
-                      <div className="px-4 pb-4 space-y-3">
-                        <Separator className="bg-zinc-800" />
-
-                        {/* MORNING block */}
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <Sun className="h-3 w-3 text-amber-500" />
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-amber-500">
-                              Morning
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2 text-xs">
-                            <div className="bg-zinc-900/60 rounded p-2">
-                              <span className="text-zinc-500 block text-[9px] uppercase mb-1">Time In</span>
-                              <span className="font-mono text-zinc-200">{fmtTime(log.timeIn)}</span>
+                    {/* Expanded details */}
+                    <div
+                      className={cn(
+                        'overflow-hidden transition-all duration-300 ease-in-out',
+                        isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
+                      )}
+                    >
+                      <div className="p-4 pt-0 border-t border-zinc-800/50 mt-2 space-y-4">
+                        <div className="grid grid-cols-1 gap-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 md:p-4 rounded-xl bg-zinc-800/30 border border-zinc-800/50">
+                            <div className="flex items-center gap-3 w-32 shrink-0">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/10">
+                                <Clock className="h-4 w-4 text-amber-500" />
+                              </div>
+                              <span className="text-xs font-medium text-zinc-300">OT</span>
                             </div>
-                            <div className="bg-zinc-900/60 rounded p-2">
-                              <span className="text-zinc-500 block text-[9px] uppercase mb-1">Time Out</span>
-                              <span className="font-mono text-zinc-200">{fmtTime(log.timeOut)}</span>
-                            </div>
-                            <div className="bg-zinc-900/60 rounded p-2">
-                              <span className="text-zinc-500 block text-[9px] uppercase mb-1">Duration</span>
-                              <span className="font-mono text-zinc-200">
-                                {log.timeIn && log.timeOut
-                                  ? fmtDuration(log.timeIn, log.timeOut, currentTime)
-                                  : isActive && activeSession?.isAfternoon === false
-                                    ? fmtDuration(log.timeIn, null, currentTime)
-                                    : '—'}
-                              </span>
-                            </div>
-                          </div>
-                          {log.task && (
-                            <p className="mt-2 text-xs text-zinc-300 bg-zinc-900/60 rounded p-2 leading-relaxed">
-                              {log.task}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* AFTERNOON block */}
-                        {(log.pmTimeIn || canStartAfternoon(log)) && (
-                          <>
-                            <Separator className="bg-zinc-800" />
-                            <div>
-                              <div className="flex items-center gap-1.5 mb-2">
-                                <Sunset className="h-3 w-3 text-indigo-400" />
-                                <span className="text-[10px] font-mono uppercase tracking-widest text-indigo-400">
-                                  Afternoon
+                            
+                            <div className="flex-1 grid grid-cols-2 sm:flex sm:items-center gap-4 md:gap-8">
+                              <div className="flex flex-col">
+                                <span className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Time In</span>
+                                <span className="font-mono text-zinc-200">{fmtTime(log.timeIn)}</span>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Time Out</span>
+                                <span className="font-mono text-zinc-200">{fmtTime(log.timeOut)}</span>
+                              </div>
+                              <div className="flex flex-col col-span-2 sm:col-span-1">
+                                <span className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Duration</span>
+                                <span className="text-xs font-medium text-zinc-400">
+                                  {log.timeIn && log.timeOut 
+                                    ? fmtDuration(log.timeIn, log.timeOut, currentTime)
+                                    : log.timeIn 
+                                      ? fmtDuration(log.timeIn, null, currentTime)
+                                      : '--'
+                                  }
                                 </span>
                               </div>
-                              {log.pmTimeIn ? (
-                                <>
-                                  <div className="grid grid-cols-3 gap-2 text-xs">
-                                    <div className="bg-zinc-900/60 rounded p-2">
-                                      <span className="text-zinc-500 block text-[9px] uppercase mb-1">Time In</span>
-                                      <span className="font-mono text-zinc-200">{fmtTime(log.pmTimeIn)}</span>
-                                    </div>
-                                    <div className="bg-zinc-900/60 rounded p-2">
-                                      <span className="text-zinc-500 block text-[9px] uppercase mb-1">Time Out</span>
-                                      <span className="font-mono text-zinc-200">{fmtTime(log.pmTimeOut)}</span>
-                                    </div>
-                                    <div className="bg-zinc-900/60 rounded p-2">
-                                      <span className="text-zinc-500 block text-[9px] uppercase mb-1">Duration</span>
-                                      <span className="font-mono text-zinc-200">
-                                        {log.pmTimeIn && log.pmTimeOut
-                                          ? fmtDuration(log.pmTimeIn, log.pmTimeOut, currentTime)
-                                          : isActive && activeSession?.isAfternoon === true
-                                            ? fmtDuration(log.pmTimeIn, null, currentTime)
-                                            : '—'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  {log.pmTask && (
-                                    <p className="mt-2 text-xs text-zinc-300 bg-zinc-900/60 rounded p-2 leading-relaxed">
-                                      {log.pmTask}
-                                    </p>
-                                  )}
-                                </>
-                              ) : (
-                                <p className="text-[11px] text-zinc-600 italic">
-                                  Afternoon session not started
-                                </p>
-                              )}
                             </div>
-                          </>
-                        )}
+
+                            {log.task && (
+                              <div className="mt-3 sm:mt-0 sm:ml-4 flex-1">
+                                <div className="p-2.5 rounded-lg bg-zinc-900/50 border border-zinc-800">
+                                  <span className="text-xs text-zinc-400 block whitespace-pre-wrap">{log.task}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })}
@@ -848,9 +761,6 @@ export default function LogBook() {
                   filteredLogs.forEach((log) => {
                     if (log.timeIn && log.timeOut) {
                       ms += new Date(log.timeOut).getTime() - new Date(log.timeIn).getTime();
-                    }
-                    if (log.pmTimeIn && log.pmTimeOut) {
-                      ms += new Date(log.pmTimeOut).getTime() - new Date(log.pmTimeIn).getTime();
                     }
                   });
                   const h = Math.floor(ms / (1000 * 60 * 60));
@@ -876,7 +786,7 @@ export default function LogBook() {
         <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
           <DialogHeader>
             <DialogTitle className="text-zinc-100">
-              {exportType === 'excel' ? 'Export Excel' : exportType === 'pdf' ? 'Export PDF' : 'Export Overtime PDF'}
+              {exportType === 'excel' ? 'Export Excel' : exportType === 'ot-pdf' ? 'Export OT PDF' : 'Export PDF'}
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
               Select date range to export
@@ -1014,43 +924,6 @@ export default function LogBook() {
                 <Textarea
                   value={editForm.task}
                   onChange={(e) => setEditForm({ ...editForm, task: e.target.value })}
-                  className="bg-zinc-800 border-zinc-700 text-zinc-200"
-                  rows={2}
-                />
-              </div>
-            </div>
-
-            {/* Afternoon Session */}
-            <div className="space-y-2 border border-zinc-700 rounded p-3">
-              <div className="flex items-center gap-1.5">
-                <Sunset className="h-3 w-3 text-indigo-400" />
-                <span className="text-xs font-mono uppercase tracking-widest text-indigo-400">Afternoon</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1.5">
-                  <label className="text-xs text-zinc-500">Time In</label>
-                  <Input
-                    type="datetime-local"
-                    value={editForm.pmTimeIn}
-                    onChange={(e) => setEditForm({ ...editForm, pmTimeIn: e.target.value })}
-                    className="bg-zinc-800 border-zinc-700 text-zinc-200"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-zinc-500">Time Out</label>
-                  <Input
-                    type="datetime-local"
-                    value={editForm.pmTimeOut}
-                    onChange={(e) => setEditForm({ ...editForm, pmTimeOut: e.target.value })}
-                    className="bg-zinc-800 border-zinc-700 text-zinc-200"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs text-zinc-500">Task</label>
-                <Textarea
-                  value={editForm.pmTask}
-                  onChange={(e) => setEditForm({ ...editForm, pmTask: e.target.value })}
                   className="bg-zinc-800 border-zinc-700 text-zinc-200"
                   rows={2}
                 />

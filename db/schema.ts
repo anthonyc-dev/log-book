@@ -88,3 +88,19 @@ export const dailyLogs = pgTable("daily_logs", {
   status: text("status").default("active"),
   createdAt: timestamp("created_at", { mode: "date" }).$defaultFn(() => new Date()),
 });
+
+export const otLogs = pgTable("ot_logs", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  date: text("date").notNull(),
+
+  timeIn: timestamp("time_in", { mode: "date" }),
+  timeOut: timestamp("time_out", { mode: "date" }),
+  task: text("task"),
+
+  totalHours: text("total_hours"),
+  status: text("status").default("active"),
+  createdAt: timestamp("created_at", { mode: "date" }).$defaultFn(() => new Date()),
+});

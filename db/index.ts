@@ -6,5 +6,6 @@ export {
   sessions,
   verificationTokens,
   dailyLogs,
+  otLogs,
 } from "@/db/schema";
 

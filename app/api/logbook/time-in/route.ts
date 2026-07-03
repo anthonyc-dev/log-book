@@ -94,23 +94,17 @@ export async function GET() {
 
   const userId = session.user.id;
 
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' });
-  const todayDate = formatter.format(now);
-
   const result = await db
     .select()
     .from(dailyLogs)
     .where(eq(dailyLogs.userId, userId))
     .orderBy(desc(dailyLogs.createdAt));
 
-  const todayResult = result.filter(r => r.date === todayDate);
-
-  const activeSession = todayResult.find(
+  const activeSession = result.find(
     (r) => r.status === "active" && r.timeIn && !r.timeOut
   );
   // Also include records with pm active
-  const pmActive = todayResult.find(
+  const pmActive = result.find(
     (r) => r.status === "active" && r.pmTimeIn && !r.pmTimeOut
   );
 

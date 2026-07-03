@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Clock, CheckCircle2, CircleDashed, FileText } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface Task {
     id: number;
@@ -53,7 +52,7 @@ export default function TaskList() {
                         <span className="font-mono text-sm uppercase">Empty Registry</span>
                     </div>
                 ) : (
-                    tasks.map((t: any, index: number) => (
+                    tasks.map((t: Task, index: number) => (
                         <div
                             key={t.id}
                             className="relative animate-in fade-in slide-in-from-left-4 duration-500"

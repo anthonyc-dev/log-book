@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { dailyLogs } from "@/db/schema";
+import { otLogs } from "@/db/schema";
 import { desc, sql, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
@@ -14,14 +14,6 @@ function fmt(ts: Date | number | null | undefined, placeholder = ""): string {
     minute: "2-digit",
     hour12: true,
   });
-}
-
-function isPM(ts: Date | number | null | undefined): boolean {
-  if (!ts) return false;
-  const timeString = new Date(ts).toLocaleTimeString("en-US", {
-    timeZone: "Asia/Manila",
-  });
-  return timeString.includes("PM");
 }
 
 function getDayLabel(dateStr: string): string {
@@ -48,24 +40,22 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
-  const exportType = searchParams.get("type");
-  const isOT = exportType === "ot";
 
   let data;
   if (startDate && endDate) {
     data = await db
       .select()
-      .from(dailyLogs)
+      .from(otLogs)
       .where(
-        sql`${dailyLogs.userId} = ${session.user.id} AND ${dailyLogs.date} >= ${startDate} AND ${dailyLogs.date} <= ${endDate}`
+        sql`${otLogs.userId} = ${session.user.id} AND ${otLogs.date} >= ${startDate} AND ${otLogs.date} <= ${endDate}`
       )
-      .orderBy(desc(dailyLogs.date));
+      .orderBy(desc(otLogs.date));
   } else {
     data = await db
       .select()
-      .from(dailyLogs)
-      .where(eq(dailyLogs.userId, session.user.id))
-      .orderBy(desc(dailyLogs.date));
+      .from(otLogs)
+      .where(eq(otLogs.userId, session.user.id))
+      .orderBy(desc(otLogs.date));
   }
 
   console.log("export-pdf: records found:", data?.length);
@@ -76,11 +66,11 @@ export async function GET(request: Request) {
   } else {
     const [range] = await db
       .select({
-        minDate: sql`MIN(${dailyLogs.date})`.as("minDate"),
-        maxDate: sql`MAX(${dailyLogs.date})`.as("maxDate"),
+        minDate: sql`MIN(${otLogs.date})`.as("minDate"),
+        maxDate: sql`MAX(${otLogs.date})`.as("maxDate"),
       })
-      .from(dailyLogs)
-      .where(eq(dailyLogs.userId, session.user.id));
+      .from(otLogs)
+      .where(eq(otLogs.userId, session.user.id));
     dateDisplay = `${range.minDate} to ${range.maxDate}`;
   }
 
@@ -101,7 +91,7 @@ export async function GET(request: Request) {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Daily Logbook</title>
+  <title>Overtime Logbook</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -159,12 +149,6 @@ export async function GET(request: Request) {
       padding: 8px;
       border: 1px solid #dddddd;
       vertical-align: middle;
-    }
-    
-    .group-header {
-      background-color: #17375E !important;
-      font-size: 12px;
-      letter-spacing: 1px;
     }
     
     .total-row {
@@ -249,7 +233,7 @@ export async function GET(request: Request) {
     <div class="header">
       <img src="data:image/jpeg;base64,${logoBase64}" class="logo" alt="Logo" />
       <div class="header-title">
-        <h1>${isOT ? 'OVERTIME LOGBOOK' : 'DAILY LOGBOOK'}</h1>
+        <h1>OVERTIME LOGBOOK</h1>
         <p>Employee Time Tracking Report</p>
         <p>Date: ${dateDisplay}</p>
       </div>
@@ -259,7 +243,7 @@ export async function GET(request: Request) {
     html += `
     <div class="header">
       <div class="header-title">
-        <h1>${isOT ? 'OVERTIME LOGBOOK' : 'DAILY LOGBOOK'}</h1>
+        <h1>OVERTIME LOGBOOK</h1>
         <p>Employee Time Tracking Report</p>
       <p>Date: ${dateDisplay}</p>
       </div>
@@ -271,16 +255,7 @@ export async function GET(request: Request) {
   <table>
     <thead>
       <tr>
-        <th class="group-header" colspan="1">DATE</th>
-        <th class="group-header" colspan="3">MORNING</th>
-        <th class="group-header" colspan="3">AFTERNOON</th>
-        <th class="group-header" colspan="1">TOTAL</th>
-      </tr>
-      <tr>
         <th>DATE</th>
-        <th>TIME IN</th>
-        <th>TIME OUT</th>
-        <th>TASK</th>
         <th>TIME IN</th>
         <th>TIME OUT</th>
         <th>TASK</th>
@@ -293,9 +268,7 @@ export async function GET(request: Request) {
   let grandMs = 0;
 
   data.forEach((rec) => {
-    const amMs = calcDuration(rec.timeIn, rec.timeOut);
-    const pmMs = calcDuration(rec.pmTimeIn, rec.pmTimeOut);
-    const totalMs = amMs + pmMs;
+    const totalMs = calcDuration(rec.timeIn, rec.timeOut);
     grandMs += totalMs;
 
     let totalStr = "";
@@ -303,39 +276,17 @@ export async function GET(request: Request) {
       const h = Math.floor(totalMs / (1000 * 60 * 60));
       const m = Math.floor((totalMs % (1000 * 60 * 60)) / (1000 * 60));
       totalStr = `${h}h ${m}m`;
-    } else if (rec.totalHours) {
-      totalStr = rec.totalHours;
     }
 
     const dayLabel = getDayLabel(rec.date);
     const dateCell = `${rec.date}  ${dayLabel}`;
 
-    const isTimeInPM = isPM(rec.timeIn);
-
-    const amTimeIn = isTimeInPM
-      ? fmt(rec.pmTimeIn, "--")
-      : fmt(rec.timeIn, "--");
-    const amTimeOut = isTimeInPM
-      ? fmt(rec.pmTimeOut, "--")
-      : fmt(rec.timeOut, "--");
-    const amTask = isTimeInPM ? rec.pmTask || "--" : rec.task || "--";
-    const pmTimeIn = isTimeInPM
-      ? fmt(rec.timeIn, "--")
-      : fmt(rec.pmTimeIn, "--");
-    const pmTimeOut = isTimeInPM
-      ? fmt(rec.timeOut, "--")
-      : fmt(rec.pmTimeOut, "--");
-    const pmTask = isTimeInPM ? rec.task || "--" : rec.pmTask || "--";
-
     html += `
       <tr>
         <td class="date-cell">${dateCell}</td>
-        <td>${amTimeIn}</td>
-        <td>${amTimeOut}</td>
-        <td><span class="task-text">${amTask}</span></td>
-        <td>${pmTimeIn}</td>
-        <td>${pmTimeOut}</td>
-        <td><span class="task-text">${pmTask}</span></td>
+        <td>${fmt(rec.timeIn, "--")}</td>
+        <td>${fmt(rec.timeOut, "--")}</td>
+        <td><span class="task-text">${rec.task || "--"}</span></td>
         <td>${totalStr}</td>
       </tr>
 `;
@@ -346,7 +297,7 @@ export async function GET(request: Request) {
 
   html += `
       <tr class="total-row">
-        <td colspan="7" style="text-align: right; padding-right: 20px;">TOTAL</td>
+        <td colspan="4" style="text-align: right; padding-right: 20px;">TOTAL</td>
         <td>${grandH}h ${grandM}m</td>
       </tr>
     </tbody>
