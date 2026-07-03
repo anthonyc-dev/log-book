@@ -7,7 +7,7 @@ import LogBook from '@/components/LogBook';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { data: _session, status } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

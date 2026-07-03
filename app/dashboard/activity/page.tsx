@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 import {
   Activity as ActivityIcon,
-  ArrowLeft,
   Clock,
   CalendarDays,
   Flame,
@@ -398,9 +397,7 @@ export default function ActivityPage() {
                   <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
                     <Target className="w-4 h-4 text-orange-500" />
                   </div>
-                  bg-linear-to-r
                   <div>
-                    bg-linear-to-r
                     <div className="text-sm font-semibold text-zinc-100">
                       Weekly Goal
                     </div>

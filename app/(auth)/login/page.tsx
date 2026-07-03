@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { Suspense, useState } from 'react';
-import styles from './login.module.css';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import Link from 'next/link';
-import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
-import Image from 'next/image';
+import { Suspense, useState } from "react";
+import styles from "./login.module.css";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import Image from "next/image";
 
 function LoginLoading() {
   return (
@@ -19,35 +19,35 @@ function LoginLoading() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        setError("Invalid email or password");
       } else {
         router.push(callbackUrl);
         router.refresh();
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -55,26 +55,26 @@ function LoginForm() {
 
   const handleGoogleSignIn = () => {
     setGoogleLoading(true);
-    signIn('google', { callbackUrl });
+    signIn("google", { callbackUrl });
   };
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row relative overflow-hidden">
-
       {/* Left Column - Decorative Panel (hidden on mobile, visible on md:) */}
       <div className="hidden md:flex w-full lg:w-1/2 relative order-1 lg:order-2">
         {/* Background Image */}
-        <div
+        {/* <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")',
+            backgroundImage:
+              'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")',
           }}
-        />
+        /> */}
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-zinc-900 via-zinc-900/50 to-transparent" />
 
         {/* Decorative Elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 via-transparent to-orange-500/20" />
+        <div className="absolute inset-0 bg-linear-to-br from-yellow-500/20 via-transparent to-orange-500/20" />
 
         {/* Content Overlay */}
         <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12 text-center">
@@ -83,7 +83,8 @@ function LoginForm() {
               Track Your Learning Journey
             </h2>
             <p className="text-zinc-300 text-base md:text-lg leading-relaxed">
-              Document your progress, reflect on your experiences, and watch yourself grow with every entry.
+              Document your progress, reflect on your experiences, and watch
+              yourself grow with every entry.
             </p>
           </div>
 
@@ -99,9 +100,14 @@ function LoginForm() {
         <div className="relative w-full max-w-md mx-4 pt-6 sm:p-8 z-10">
           {/* Logo / Header */}
           <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 ">
-                  <Image src={"/clock-v3.png"} height={200} width={200} alt='logo'/>
-              </div>
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 ">
+              <Image
+                src={"/clock-v3.png"}
+                height={200}
+                width={200}
+                alt="logo"
+              />
+            </div>
             <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
               Welcome Back
             </h1>
@@ -112,7 +118,9 @@ function LoginForm() {
 
           {/* Error Message */}
           {error && (
-            <div className={`mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center ${styles.shake}`}>
+            <div
+              className={`mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center ${styles.shake}`}
+            >
               {error}
             </div>
           )}
@@ -121,7 +129,10 @@ function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-zinc-300">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-zinc-300"
+              >
                 Email
               </label>
               <div className="relative">
@@ -140,14 +151,17 @@ function LoginForm() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-zinc-300">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-zinc-300"
+              >
                 Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
                 <input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -172,7 +186,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-zinc-900 font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-linear-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-zinc-900 font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -180,7 +194,7 @@ function LoginForm() {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
           </form>
@@ -228,7 +242,7 @@ function LoginForm() {
 
           {/* Register Link */}
           <p className="text-center mt-6 text-sm text-zinc-500">
-            Don&apos;t have an account?{' '}
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="text-yellow-500 hover:text-yellow-400 font-medium transition-colors"
@@ -238,7 +252,6 @@ function LoginForm() {
           </p>
         </div>
       </div>
-
     </div>
   );
 }

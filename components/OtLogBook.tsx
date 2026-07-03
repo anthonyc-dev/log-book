@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,10 +32,8 @@ import {
   Activity,
   FileText,
   Sun,
-  Sunset,
   Timer,
   ChevronDown,
-  ChevronUp,
   FileSpreadsheet,
   FileText as FileTextIcon,
   Printer,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Clock, Activity, LogOut, Loader2, Menu } from "lucide-react";
+import { Calendar, Clock, Activity, LogOut, Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";

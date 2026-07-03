@@ -7,7 +7,7 @@ import OtLogBook from '@/components/OtLogBook';
 import { Loader2 } from 'lucide-react';
 
 export default function OtDashboardPage() {
-  const { data: session, status } = useSession();
+  const { data: _session, status } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
