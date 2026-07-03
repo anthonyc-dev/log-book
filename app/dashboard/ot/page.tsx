@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
-import LogBook from '@/components/LogBook';
+import OtLogBook from '@/components/OtLogBook';
 import { Loader2 } from 'lucide-react';
 
-export default function DashboardPage() {
+export default function OtDashboardPage() {
   const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
 
@@ -32,14 +32,14 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-100 tracking-tight">
-            Daily Logbook
+            Overtime Logbook
           </h1>
           <p className="text-zinc-500 mt-1 text-sm">
-            Track your standard daily work sessions and tasks
+            Track your overtime hours and sessions
           </p>
         </div>
         
-        <LogBook />
+        <OtLogBook />
       </div>
     </main>
   );
